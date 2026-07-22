@@ -16,23 +16,23 @@ parser.add_argument('-f', default='', type=str)
 
 # Fixed
 parser.add_argument('--model', type=str, default='MulT1',
-                    help='name of the model to use (Transformer, etc.)')        # 指定使用模型
+                    help='name of the model to use (Transformer, etc.)')
 
 # Tasks
 parser.add_argument('--vonly', action='store_true',
-                    help='use the crossmodal fusion into v (default: False)')   # 仅使用Visual数据进行模态融合
+                    help='use the crossmodal fusion into v (default: False)')
 parser.add_argument('--aonly', action='store_true',
-                    help='use the crossmodal fusion into a (default: False)')   # 仅使用Audio数据进行模态融合
+                    help='use the crossmodal fusion into a (default: False)')
 parser.add_argument('--lonly', action='store_true',
-                    help='use the crossmodal fusion into l (default: False)')   # 仅使用text数据进行模态融合
+                    help='use the crossmodal fusion into l (default: False)')
 parser.add_argument('--aligned', default=True,
-                    help='consider aligned experiment or not (default: False)') # 是否对齐实验
+                    help='consider aligned experiment or not (default: False)')
 parser.add_argument('--dataset', type=str, default='iemo',
-                    help='dataset to use (default: mosei_senti)')               # 指定数据集名称
+                    help='dataset to use (default: mosei_senti)')
 parser.add_argument('--data_path', type=str, default='./data',
-                    help='path for storing the dataset')                        # 指定数据集路径
+                    help='path for storing the dataset')
 
-# Dropouts                                                                      # 控制不同层的dropout
+# Dropouts
 parser.add_argument('--attn_dropout', type=float, default=0.1,
                     help='attention dropout')
 parser.add_argument('--attn_dropout_a', type=float, default=0,
@@ -50,39 +50,39 @@ parser.add_argument('--out_dropout', type=float, default=0.1,
 
 # Architecture
 parser.add_argument('--nlevels', type=int, default=4,
-                    help='number of layers in the network (default: 5)')              # 网络层数
+                    help='number of layers in the network (default: 5)')
 parser.add_argument('--num_heads', type=int, default=10,
-                    help='number of heads for the transformer network (default: 5)')  # 注意力头的数量
+                    help='number of heads for the transformer network (default: 5)')
 parser.add_argument('--attn_mask', default='True',
-                    help='use attention mask for Transformer (default: true)')        # 是否使用注意力掩码
+                    help='use attention mask for Transformer (default: true)')
 
 # Tuning
 parser.add_argument('--batch_size', type=int, default=128, metavar='N',
                     help='batch size (default: 24)')
 parser.add_argument('--clip', type=float, default=0.9,
-                    help='gradient clip value (default: 0.8)')                         # 梯度裁剪值
+                    help='gradient clip value (default: 0.8)')
 parser.add_argument('--lr', type=float, default=1e-4,
-                    help='initial learning rate (default: 1e-3)')                      # 初始学习率
+                    help='initial learning rate (default: 1e-3)')
 parser.add_argument('--optim', type=str, default='Adam',
-                    help='optimizer to use (default: Adam)')                           # 优化器设置
+                    help='optimizer to use (default: Adam)')
 parser.add_argument('--num_epochs', type=int, default=70,
-                    help='number of epochs (default: 40)')                             # 训练轮数
+                    help='number of epochs (default: 40)')
 parser.add_argument('--when', type=int, default=25,
-                    help='when to decay learning rate (default: 20)')                  # 学习率衰减轮次
+                    help='when to decay learning rate (default: 20)')
 parser.add_argument('--batch_chunk', type=int, default=1,
-                    help='number of chunks per batch (default: 1)')                    # 批次块？
+                    help='number of chunks per batch (default: 1)')
 
 # Logistics
 parser.add_argument('--log_interval', type=int, default=40,
-                    help='frequency of result logging (default: 30)')                  # 每隔30轮记录一次结果
+                    help='frequency of result logging (default: 30)')            
 parser.add_argument('--seed', type=int, default=3407,
-                    help='random seed')                                                # 随机种子
+                    help='random seed')
 parser.add_argument('--no_cuda', action='store_true', default=False,
-                    help='do not use cuda')                                            # 是否使用GPU,默认使用
+                    help='do not use cuda')
 parser.add_argument('--name', type=str, default='mult',
-                    help='name of the trial (default: "mult")')                        # 实验名称
+                    help='name of the trial (default: "mult")')
 parser.add_argument('--eval',default=True,
-                    help='evaluate model')                                             # 是否只进行评估
+                    help='evaluate model')
 
 args = parser.parse_args()
 
@@ -130,12 +130,6 @@ if torch.cuda.is_available():
         torch.set_default_tensor_type('torch.cuda.FloatTensor')
         use_cuda = True
 
-####################################################################
-#
-# Load the dataset (aligned or non-aligned)
-#
-####################################################################
-
 print("Start loading the data....")
 
 train_data = get_data(args, dataset, 'train')
@@ -149,12 +143,6 @@ test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False)
 print('Finish loading the data....')
 if not args.aligned:
     print("### Note: You are running in unaligned mode.")
-
-####################################################################
-#
-# Hyperparameters
-#
-####################################################################
 
 hyp_params = args
 hyp_params.orig_d_l, hyp_params.orig_d_a, hyp_params.orig_d_v = train_data.get_dim()

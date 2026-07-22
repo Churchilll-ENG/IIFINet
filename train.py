@@ -17,13 +17,6 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import accuracy_score, f1_score
 from src.eval_metrics import *
 
-
-####################################################################
-#
-# Construct the model and the CTC module (which may not be needed)
-#
-####################################################################
-
 def get_CTC_module(hyp_params):
     a2l_module = getattr(ctc, 'CTCModule')(in_dim=hyp_params.orig_d_a, out_seq_len=hyp_params.l_len)
     v2l_module = getattr(ctc, 'CTCModule')(in_dim=hyp_params.orig_d_v, out_seq_len=hyp_params.l_len)
@@ -62,13 +55,6 @@ def initiate(hyp_params, train_loader, valid_loader, test_loader):
                 'scheduler': scheduler}
     return train_model(settings, hyp_params, train_loader, valid_loader, test_loader)
 
-
-####################################################################
-#
-# Training and evaluation scripts
-#
-####################################################################
-
 def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
     model = settings['model']
     optimizer = settings['optimizer']
@@ -91,7 +77,7 @@ def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
         start_time = time.time()
         for i_batch, (batch_X, batch_Y, batch_META) in enumerate(train_loader):
             sample_ind, text, audio, vision = batch_X
-            eval_attr = batch_Y.squeeze(-1)   # if num of labels is 1
+            eval_attr = batch_Y.squeeze(-1)
             model.zero_grad()
             if ctc_criterion is not None:
                 ctc_a2l_module.zero_grad()
@@ -112,22 +98,16 @@ def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
             
             batch_size = text.size(0)
             batch_chunk = hyp_params.batch_chunk
-            
-            ######## CTC STARTS ######## Do not worry about this if not working on CTC
+
             if ctc_criterion is not None:
                 ctc_a2l_net = nn.DataParallel(ctc_a2l_module) if batch_size > 10 else ctc_a2l_module
                 ctc_v2l_net = nn.DataParallel(ctc_v2l_module) if batch_size > 10 else ctc_v2l_module
 
                 audio, a2l_position = ctc_a2l_net(audio) # audio now is the aligned to text
                 vision, v2l_position = ctc_v2l_net(vision)
-                
-                ## Compute the ctc loss
                 l_len, a_len, v_len = hyp_params.l_len, hyp_params.a_len, hyp_params.v_len
-                # Output Labels
                 l_position = torch.tensor([i+1 for i in range(l_len)]*batch_size).int().cpu()
-                # Specifying each output length
                 l_length = torch.tensor([l_len]*batch_size).int().cpu()
-                # Specifying each input length
                 a_length = torch.tensor([a_len]*batch_size).int().cpu()
                 v_length = torch.tensor([v_len]*batch_size).int().cpu()
                 
@@ -137,7 +117,6 @@ def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
                 ctc_loss = ctc_loss.cuda() if hyp_params.use_cuda else ctc_loss
             else:
                 ctc_loss = 0
-            ######## CTC ENDS ########
                 
             combined_loss = 0
             # net = nn.DataParallel(model) if batch_size > 10 else model
@@ -243,8 +222,6 @@ def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
                     ctc_v2l_net = nn.DataParallel(ctc_v2l_module) if batch_size > 10 else ctc_v2l_module
                     audio, _ = ctc_a2l_net(audio)     # audio aligned to text
                     vision, _ = ctc_v2l_net(vision)   # vision aligned to text
-                
-                # net = nn.DataParallel(model) if batch_size > 10 else model
                 net = model
                 preds, _ = net(text, audio, vision)
                 if hyp_params.dataset == 'iemocap' or hyp_params.dataset == 'iemo':
@@ -260,8 +237,6 @@ def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
                     preds = preds.view(-1, 2)
                     eval_attr = eval_attr.view(-1)
                 total_loss += criterion(preds, eval_attr).item() * batch_size
-
-                # Collect the results into dictionary
                 results.append(preds)
                 truths.append(eval_attr)
                 
@@ -280,7 +255,7 @@ def train_model(settings, hyp_params, train_loader, valid_loader, test_loader):
 
         end = time.time()
         duration = end-start
-        scheduler.step(val_loss)    # Decay learning rate by validation loss
+        scheduler.step(val_loss)
 
         print("-"*50)
         print('Epoch {:2d} | Time {:5.4f} sec | Valid Loss {:5.4f} | Test Loss {:5.4f}'.format(epoch, duration, val_loss, test_loss))
@@ -403,8 +378,6 @@ def evaluate_model(settings, hyp_params, train_loader, valid_loader, test_loader
                     preds = preds.view(-1, 2)
                     eval_attr = eval_attr.view(-1)
                 total_loss += criterion(preds, eval_attr).item() * batch_size
-
-                # Collect the results into dictionary
                 results.append(preds)
                 truths.append(eval_attr)
 
