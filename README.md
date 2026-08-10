@@ -53,17 +53,17 @@ python main.py --dataset iemo --data_path ./data --eval True
 
 ## Main Arguments
 
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--model` | IIFINet | Model type (MulT/IIFINet) |
-| `--dataset` | iemo | Dataset name |
-| `--data_path` | ./data | Data directory path |
-| `--batch_size` | 128 | Batch size |
-| `--num_epochs` | 70 | Number of epochs |
-| `--lr` | 1e-4 | Learning rate |
-| `--nlevels` | 4 | Number of transformer layers |
-| `--num_heads` | 10 | Number of attention heads |
-| `--eval` | True | Evaluation mode |
+| Argument | Description |
+|----------|-------------|
+| `--model` | Model type (MulT/IIFINet) |
+| `--dataset` | Dataset name |
+| `--data_path` | Data directory path |
+| `--batch_size` | Batch size |
+| `--num_epochs` | Number of epochs |
+| `--lr` | Learning rate |
+| `--nlevels` | Number of transformer layers |
+| `--num_heads` | Number of attention heads |
+| `--eval` | Evaluation mode |
 
 ## GPU Setting
 
